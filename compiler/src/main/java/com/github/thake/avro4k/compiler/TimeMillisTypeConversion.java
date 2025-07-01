@@ -10,6 +10,6 @@ public class TimeMillisTypeConversion extends SerializableLogicalTypeConversion 
     }
 
     @Override public String getKotlinDefaultString(Schema schema, Object defaultValue) {
-        return "java.time.LocalTime.ofNanoOfDay(" + defaultValue + "000000L * )";
+        return "java.time.LocalTime.ofNanoOfDay(" + defaultValue + "000000L)";
     }
 }

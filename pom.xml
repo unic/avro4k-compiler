@@ -49,25 +49,27 @@
         </developer>
     </developers>
     <properties>
-        <avro.version>1.11.1</avro.version>
-        <avro4k.version>1.6.0</avro4k.version>
-        <ant.version>1.10.12</ant.version>
-        <commons-lang.version>3.12.0</commons-lang.version>
-        <commons-text.version>1.9</commons-text.version>
-        <velocity.version>2.3</velocity.version>
-        <jackson.databind.version>2.14.0</jackson.databind.version>
+        <avro.version>1.12.0</avro.version>
+        <avro4k.version>1.10.1</avro4k.version>
+        <ant.version>1.10.15</ant.version>
+        <commons-lang.version>3.17.0</commons-lang.version>
+        <commons-text.version>1.13.1</commons-text.version>
+        <velocity.version>2.4.1</velocity.version>
+        <jackson.version>2.19.1</jackson.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>2.0.1</slf4j.version>
-        <junit.version>5.9.0</junit.version>
-        <exec-plugin.version>3.1.0</exec-plugin.version>
-        <surefire-plugin.version>3.0.0-M9</surefire-plugin.version>
-        <javacc-plugin.version>2.6</javacc-plugin.version>
-        <jar-plugin.version>3.3.0</jar-plugin.version>
+        <junit.version>5.13.2</junit.version>
+        <exec-plugin.version>3.5.1</exec-plugin.version>
+        <surefire-plugin.version>3.5.3</surefire-plugin.version>
+        <javacc-plugin.version>3.1.1</javacc-plugin.version>
+        <jar-plugin.version>3.4.2</jar-plugin.version>
+        <compiler-plugin.version>3.14.0</compiler-plugin.version>
+        <plugin-plugin.version>3.15.1</plugin-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.7.10</kotlin.version>
-        <maven.version>3.8.6</maven.version>
-        <file-management.version>3.1.0</file-management.version>
+        <kotlin.version>1.9.25</kotlin.version>
+        <maven.version>3.9.10</maven.version>
+        <file-management.version>3.2.0</file-management.version>
     </properties>
     <modules>
         <module>compiler</module>
@@ -94,7 +96,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>${compiler-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <artifactId>kotlin-maven-plugin</artifactId>
@@ -104,7 +106,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.7.0</version>
+                    <version>${plugin-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -112,7 +114,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
+                <version>3.1.1</version>
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>true</useReleaseProfile>
@@ -148,8 +150,13 @@
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.databind.version}</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.ant</groupId>
@@ -183,7 +190,7 @@
             </dependency>
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-compiler-embeddable</artifactId>
+                <artifactId>kotlin-compiler</artifactId>
                 <version>${kotlin.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -246,7 +253,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.2.1</version>
+                        <version>3.3.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -259,7 +266,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.1</version>
+                        <version>3.11.2</version>
                         <configuration>
                             <source>8</source>
                         </configuration>
@@ -282,7 +289,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.7</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

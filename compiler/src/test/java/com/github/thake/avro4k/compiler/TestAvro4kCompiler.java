@@ -18,8 +18,8 @@
 package com.github.thake.avro4k.compiler;
 
 import com.github.avrokotlin.avro4k.serializer.InstantSerializer;
+import com.intellij.openapi.Disposable;
 import kotlin.script.experimental.jvm.util.JvmClasspathUtilKt;
-import kotlin.script.experimental.jvm.util.KotlinJars;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler;
 import org.jetbrains.kotlin.cli.jvm.config.JvmContentRootsKt;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
-import org.jetbrains.kotlin.com.intellij.openapi.Disposable;
 import org.jetbrains.kotlin.config.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +49,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -102,8 +102,8 @@ public class TestAvro4kCompiler {
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY,
                 new PrintingMessageCollector(ps, MessageRenderer.PLAIN_FULL_PATHS, true));
         configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8);
+        configuration.put(JVMConfigurationKeys.JDK_HOME, new File(System.getenv("JAVA_HOME")));
         Set<File> classPath = new HashSet<>(Objects.requireNonNull(JvmClasspathUtilKt.classpathFromClassloader(TestAvro4kCompiler.class.getClassLoader(), false)));
-        classPath.add(KotlinJars.INSTANCE.getStdlib());
         JvmContentRootsKt.addJvmClasspathRoots(configuration, new ArrayList<>(classPath));
         ContentRootsKt.addKotlinSourceRoot(configuration, dir.getAbsolutePath());
         KotlinCoreEnvironment env = KotlinCoreEnvironment.createForProduction(new Disposable() {
@@ -524,6 +524,15 @@ public class TestAvro4kCompiler {
                 new File("src/test/resources/logical_types_with_multiple_fields.avsc"));
         assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
                 new Avro4kCompiler(logicalTypesWithMultipleFields).compile());
+    }
+
+
+    @Test
+    public void testLogicalTypesWithLogicalNullable(TestInfo testInfo) throws Exception {
+        Schema logicalTypesWithLogicalNullable = new Schema.Parser().parse(
+                new File("src/test/resources/simple_record_with_logical_nullable.avsc"));
+        assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
+                new Avro4kCompiler(logicalTypesWithLogicalNullable).compile());
     }
 
     @Test

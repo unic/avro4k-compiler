@@ -21,12 +21,12 @@
     {
       "name": "floatValue",
       "type": "float",
-      "default": 1.0
+      "default": 1.1
     },
     {
       "name": "doubleValue",
       "type": "double",
-      "default": 1.0
+      "default": 1.1
     },
     {
       "name": "stringValue",

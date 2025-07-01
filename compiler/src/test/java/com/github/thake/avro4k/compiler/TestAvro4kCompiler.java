@@ -33,10 +33,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler;
 import org.jetbrains.kotlin.cli.jvm.config.JvmContentRootsKt;
 import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable;
-import org.jetbrains.kotlin.config.CommonConfigurationKeys;
-import org.jetbrains.kotlin.config.CompilerConfiguration;
-import org.jetbrains.kotlin.config.JVMConfigurationKeys;
-import org.jetbrains.kotlin.config.JvmTarget;
+import org.jetbrains.kotlin.config.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -53,13 +50,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,7 +68,8 @@ public class TestAvro4kCompiler {
      */
     protected static final int MAX_FIELD_PARAMETER_UNIT_COUNT = JVM_METHOD_ARG_LIMIT - 1;
     private static final Logger LOG = LoggerFactory.getLogger(TestAvro4kCompiler.class);
-    @TempDir public File OUTPUT_DIR;
+    @TempDir
+    public File OUTPUT_DIR;
 
     private File outputFile;
     private final File src = new File("src/test/resources/simple_record.avsc");
@@ -91,7 +83,7 @@ public class TestAvro4kCompiler {
      * Uses the embedded kotlin compiler to actually compile the generated code.
      */
     static void assertCompilesWithKotlinCompiler(File dstDir, Collection<Avro4kCompiler.OutputFile> outputs,
-            boolean ignoreWarnings) throws IOException {
+                                                 boolean ignoreWarnings) throws IOException {
         if (outputs.isEmpty()) {
             return; // Nothing to compile!
         }
@@ -108,15 +100,15 @@ public class TestAvro4kCompiler {
         PrintStream ps = new PrintStream(baos);
         configuration.put(CommonConfigurationKeys.MODULE_NAME, "test.module");
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY,
-                          new PrintingMessageCollector(ps, MessageRenderer.PLAIN_FULL_PATHS, true));
+                new PrintingMessageCollector(ps, MessageRenderer.PLAIN_FULL_PATHS, true));
         configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8);
-        Set<File> classPath = new HashSet<>(
-                JvmClasspathUtilKt.classpathFromClassloader(TestAvro4kCompiler.class.getClassLoader(), false));
+        Set<File> classPath = new HashSet<>(Objects.requireNonNull(JvmClasspathUtilKt.classpathFromClassloader(TestAvro4kCompiler.class.getClassLoader(), false)));
         classPath.add(KotlinJars.INSTANCE.getStdlib());
         JvmContentRootsKt.addJvmClasspathRoots(configuration, new ArrayList<>(classPath));
         ContentRootsKt.addKotlinSourceRoot(configuration, dir.getAbsolutePath());
         KotlinCoreEnvironment env = KotlinCoreEnvironment.createForProduction(new Disposable() {
-            @Override public void dispose() {
+            @Override
+            public void dispose() {
 
             }
         }, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES);
@@ -140,7 +132,8 @@ public class TestAvro4kCompiler {
         return sb.endRecord();
     }
 
-    @BeforeEach public void setUp() {
+    @BeforeEach
+    public void setUp() {
         this.outputFile = new File(this.OUTPUT_DIR, "SimpleRecord.kt");
     }
 
@@ -153,17 +146,20 @@ public class TestAvro4kCompiler {
         return compiler;
     }
 
-    @Test public void testCanReadTemplateFilesOnTheFilesystem() throws IOException {
+    @Test
+    public void testCanReadTemplateFilesOnTheFilesystem() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         compiler.compileToDestination(this.src, OUTPUT_DIR);
         assertTrue(new File(OUTPUT_DIR, "SimpleRecord.kt").exists());
     }
 
-    @Test public void testLogicalTypesWithNull() {
+    @Test
+    public void testLogicalTypesWithNull() {
 
     }
 
-    @Test public void testPublicFieldVisibility() throws IOException {
+    @Test
+    public void testPublicFieldVisibility() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         compiler.setFieldVisibility(Avro4kCompiler.FieldVisibility.PUBLIC);
         assertTrue(compiler.publicFields());
@@ -178,22 +174,24 @@ public class TestAvro4kCompiler {
                 // fields, we cannot do the second check.
                 line = line.trim();
                 assertFalse(line.startsWith("@Deprecated public int value"),
-                            "Line started with a deprecated field declaration: " + line);
+                        "Line started with a deprecated field declaration: " + line);
             }
         }
     }
 
-    @Test public void testMaxValidParameterCounts(TestInfo testInfo) throws Exception {
+    @Test
+    public void testMaxValidParameterCounts(TestInfo testInfo) throws Exception {
         Schema validSchema1 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT, 0);
         assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "1"),
-                                         new Avro4kCompiler(validSchema1).compile());
+                new Avro4kCompiler(validSchema1).compile());
 
         Schema validSchema2 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT - 2, 1);
         assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "2"),
-                                         new Avro4kCompiler(validSchema1).compile());
+                new Avro4kCompiler(validSchema1).compile());
     }
 
-    @Test public void testInvalidParameterCounts(TestInfo testInfo) throws Exception {
+    @Test
+    public void testInvalidParameterCounts(TestInfo testInfo) throws Exception {
         Schema invalidSchema1 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT + 1, 0);
         Avro4kCompiler compiler = new Avro4kCompiler(invalidSchema1);
         assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "1"), compiler.compile());
@@ -203,7 +201,8 @@ public class TestAvro4kCompiler {
         assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "2"), compiler.compile());
     }
 
-    @Test public void testMaxParameterCounts() throws Exception {
+    @Test
+    public void testMaxParameterCounts() throws Exception {
         Schema validSchema1 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT, 0);
         assertTrue(new Avro4kCompiler(validSchema1).compile().size() > 0);
 
@@ -217,7 +216,8 @@ public class TestAvro4kCompiler {
         assertTrue(new Avro4kCompiler(validSchema4).compile().size() > 0);
     }
 
-    @Test public void testPrivateFieldVisibility() throws IOException {
+    @Test
+    public void testPrivateFieldVisibility() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         compiler.setFieldVisibility(Avro4kCompiler.FieldVisibility.PRIVATE);
         assertFalse(compiler.publicFields());
@@ -232,12 +232,13 @@ public class TestAvro4kCompiler {
                 line = line.trim();
                 assertFalse(line.startsWith("public int value"), "Line started with a public field declaration: " + line);
                 assertFalse(line.startsWith("@Deprecated public int value"),
-                            "Line started with a deprecated field declaration: " + line);
+                        "Line started with a deprecated field declaration: " + line);
             }
         }
     }
 
-    @Test public void testSettersCreated() throws IOException {
+    @Test
+    public void testSettersCreated() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         assertFalse(compiler.isCreateSetters());
         compiler.setCreateSetters(true);
@@ -257,11 +258,12 @@ public class TestAvro4kCompiler {
         assertEquals(2, foundSetters, "Found the wrong number of setters");
     }
 
-    @Test public void renamedMultipleClasses() throws IOException {
+    @Test
+    public void renamedMultipleClasses() throws IOException {
         assertRenamedClasses(new File("src/test/resources/simple_record_with_subtype.avsc"),
-                             Collections.singletonMap("my.namespace.(\\w+)Record", "com.github.thake.avro4k.test.$1"),
-                             new RenamedClass("com.github.thake.avro4k.test", "Simple", "my.namespace", "SimpleRecord"),
-                             new RenamedClass("com.github.thake.avro4k.test", "Inner", "my.namespace", "InnerRecord"));
+                Collections.singletonMap("my.namespace.(\\w+)Record", "com.github.thake.avro4k.test.$1"),
+                new RenamedClass("com.github.thake.avro4k.test", "Simple", "my.namespace", "SimpleRecord"),
+                new RenamedClass("com.github.thake.avro4k.test", "Inner", "my.namespace", "InnerRecord"));
 
     }
 
@@ -283,10 +285,10 @@ public class TestAvro4kCompiler {
         for (RenamedClass renamedClass : renamedClasses) {
             //Read file from expected folder
             File outputFile = new File(this.OUTPUT_DIR,
-                                       renamedClass.packageName.replace(".", "/") + "/" + renamedClass.className + ".kt");
+                    renamedClass.packageName.replace(".", "/") + "/" + renamedClass.className + ".kt");
             assertTrue(outputFile.exists(),
-                       "Output file hasn't been generated or has been generated in the wrong package. Expected path: "
-                               + outputFile.getAbsolutePath());
+                    "Output file hasn't been generated or has been generated in the wrong package. Expected path: "
+                            + outputFile.getAbsolutePath());
             try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -321,28 +323,31 @@ public class TestAvro4kCompiler {
         assertCompilesWithKotlinCompiler(this.OUTPUT_DIR);
     }
 
-    @Test public void testRenamedClasses() throws IOException {
+    @Test
+    public void testRenamedClasses() throws IOException {
         assertRenamedClasses(this.src, Collections.singletonMap("SimpleRecord", "com.github.thake.SimpleOtherRecord"),
-                             new RenamedClass("com.github.thake", "SimpleOtherRecord", "", "SimpleRecord"));
+                new RenamedClass("com.github.thake", "SimpleOtherRecord", "", "SimpleRecord"));
         assertRenamedClasses(new File("src/test/resources/simple_record_with_namespace.avsc"),
-                             Collections.singletonMap("SimpleRecord", "SimpleOtherRecord"),
-                             new RenamedClass("my.namespace", "SimpleOtherRecord", "my.namespace", "SimpleRecord"));
+                Collections.singletonMap("SimpleRecord", "SimpleOtherRecord"),
+                new RenamedClass("my.namespace", "SimpleOtherRecord", "my.namespace", "SimpleRecord"));
         assertRenamedClasses(new File("src/test/resources/simple_record_with_namespace.avsc"),
-                             Collections.singletonMap("my.namespace.(\\w+)Record", "other.prefix.$1"),
-                             new RenamedClass("other.prefix", "Simple", "my.namespace", "SimpleRecord"));
+                Collections.singletonMap("my.namespace.(\\w+)Record", "other.prefix.$1"),
+                new RenamedClass("other.prefix", "Simple", "my.namespace", "SimpleRecord"));
 
     }
 
-    @Test public void testNullableLogicalTypesJavaUnboxDecimalTypesEnabled() throws Exception {
+    @Test
+    public void testNullableLogicalTypesJavaUnboxDecimalTypesEnabled() throws Exception {
         Avro4kCompiler compiler = createCompiler();
 
         // Nullable types should return boxed types instead of primitive types
         Schema nullableDecimalSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
                 .addToSchema(Schema.create(Schema.Type.LONG)));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema1), "java.time.Instant?");
+        assertEquals(compiler.kotlinUnbox(nullableDecimalSchema1), "java.time.Instant?", "Should return boxed type");
     }
 
-    @Test public void testSettersNotCreatedWhenOptionTurnedOff() throws IOException {
+    @Test
+    public void testSettersNotCreatedWhenOptionTurnedOff() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         compiler.setCreateSetters(false);
         assertFalse(compiler.isCreateSetters());
@@ -358,7 +363,8 @@ public class TestAvro4kCompiler {
         }
     }
 
-    @Test public void testSettingOutputCharacterEncoding() throws Exception {
+    @Test
+    public void testSettingOutputCharacterEncoding() throws Exception {
         Avro4kCompiler compiler = createCompiler();
         // Generated file in default encoding
         compiler.compileToDestination(this.src, this.OUTPUT_DIR);
@@ -382,13 +388,14 @@ public class TestAvro4kCompiler {
         is.close();
         // Compare as bytes
         assertNotEquals(fileInDifferentEncoding, fileInDefaultEncoding,
-                        "Generated file should contain different bytes after setting non-default encoding");
+                "Generated file should contain different bytes after setting non-default encoding");
         // Compare as strings
         assertEquals(new String(fileInDifferentEncoding, differentEncoding), new String(fileInDefaultEncoding),
-                     "Generated files should contain the same characters in the proper encodings");
+                "Generated files should contain the same characters in the proper encodings");
     }
 
-    @Test public void testJavaTypeWithJsr310DateTimeTypes() throws Exception {
+    @Test
+    public void testJavaTypeWithJsr310DateTimeTypes() throws Exception {
         Avro4kCompiler compiler = createCompiler();
 
         Schema dateSchema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
@@ -398,14 +405,15 @@ public class TestAvro4kCompiler {
         Schema timestampMicrosSchema = LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG));
 
         // Date/time types should always use upper level java classes
-        assertEquals("Should use java.time.LocalDate for date type", "java.time.LocalDate", compiler.kotlinType(dateSchema));
-        assertEquals("Should use java.time.LocalTime for time-millis type", "java.time.LocalTime",
-                     compiler.kotlinType(timeSchema));
-        assertEquals("Should use java.time.Instant for timestamp-millis type", "java.time.Instant",
-                     compiler.kotlinType(timestampSchema));
+        assertEquals("java.time.LocalDate", compiler.kotlinType(dateSchema), "Should use java.time.LocalDate for date type");
+        assertEquals("java.time.LocalTime",
+                compiler.kotlinType(timeSchema), "Should use java.time.LocalTime for time-millis type");
+        assertEquals("java.time.Instant",
+                compiler.kotlinType(timestampSchema), "Should use java.time.Instant for timestamp-millis type");
     }
 
-    @Test public void testJavaUnbox() throws Exception {
+    @Test
+    public void testJavaUnbox() throws Exception {
         Avro4kCompiler compiler = createCompiler();
 
         Schema intSchema = Schema.create(Schema.Type.INT);
@@ -413,11 +421,11 @@ public class TestAvro4kCompiler {
         Schema floatSchema = Schema.create(Schema.Type.FLOAT);
         Schema doubleSchema = Schema.create(Schema.Type.DOUBLE);
         Schema boolSchema = Schema.create(Schema.Type.BOOLEAN);
-        assertEquals("Should use int for Type.INT", "Int", compiler.kotlinUnbox(intSchema));
-        assertEquals("Should use long for Type.LONG", "Long", compiler.kotlinUnbox(longSchema));
-        assertEquals("Should use float for Type.FLOAT", "Float", compiler.kotlinUnbox(floatSchema));
-        assertEquals("Should use double for Type.DOUBLE", "Double", compiler.kotlinUnbox(doubleSchema));
-        assertEquals("Should use boolean for Type.BOOLEAN", "Boolean", compiler.kotlinUnbox(boolSchema));
+        assertEquals("Int", compiler.kotlinUnbox(intSchema), "Should use int for Type.INT");
+        assertEquals("Long", compiler.kotlinUnbox(longSchema), "Should use long for Type.LONG");
+        assertEquals("Float", compiler.kotlinUnbox(floatSchema), "Should use float for Type.FLOAT");
+        assertEquals("Double", compiler.kotlinUnbox(doubleSchema), "Should use double for Type.DOUBLE");
+        assertEquals("Boolean", compiler.kotlinUnbox(boolSchema), "Should use boolean for Type.BOOLEAN");
 
         Schema dateSchema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
         Schema timeSchema = LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT));
@@ -426,26 +434,29 @@ public class TestAvro4kCompiler {
         Schema timestampMicrosSchema = LogicalTypes.timestampMicros().addToSchema(Schema.create(Schema.Type.LONG));
         // Date/time types should always use upper level java classes, even though
         // their underlying representations are primitive types
-        assertEquals("Should use java.time.LocalDate for date type", "java.time.LocalDate",
-                     compiler.kotlinUnbox(dateSchema));
-        assertEquals("Should use java.time.LocalTime for time-millis type", "java.time.LocalTime",
-                     compiler.kotlinUnbox(timeSchema));
-        assertEquals("Should use java.time.Instant for timestamp-millis type", "java.time.Instant",
-                     compiler.kotlinUnbox(timestampSchema));
+        assertEquals("java.time.LocalDate",
+                compiler.kotlinUnbox(dateSchema), "Should use java.time.LocalDate for date type");
+        assertEquals("java.time.LocalTime",
+                compiler.kotlinUnbox(timeSchema), "Should use java.time.LocalTime for time-millis type");
+        assertEquals("java.time.Instant",
+                compiler.kotlinUnbox(timestampSchema), "Should use java.time.Instant for timestamp-millis type");
     }
 
-    @Test public void testNullableLogicalTypesKotlinSerializer() throws IOException {
+    @Test
+    public void testNullableLogicalTypesKotlinSerializer() throws IOException {
         Avro4kCompiler compiler = createCompiler();
 
         // Nullable types should return serializer for logical type
-        Schema nullablInstant = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
+        Schema nullableInstant = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
                 .addToSchema(Schema.create(Schema.Type.LONG)));
-        assertEquals("Should return instant serializer",
-                     "@Serializable(with=" + InstantSerializer.class.getCanonicalName() + "::class)",
-                     compiler.serializerAnnotation(nullablInstant).orElse(null));
+        assertEquals(
+                "@Serializable(with=" + InstantSerializer.class.getCanonicalName() + "::class)",
+                compiler.serializerAnnotation(nullableInstant).orElse(null),
+                "Should return instant serializer");
     }
 
-    @Test public void testDefaultValueAsString() throws IOException {
+    @Test
+    public void testDefaultValueAsString() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         Schema schema = SchemaBuilder.record("record")
                 .fields()
@@ -457,62 +468,66 @@ public class TestAvro4kCompiler {
                 .withDefault(1)
                 .name("longDefault")
                 .type(Schema.create(Schema.Type.LONG))
-                .withDefault(1l)
+                .withDefault(1L)
                 .endRecord();
-        assertEquals("null", compiler.defaultValue(schema.getField("nullDefault")));
+        assertEquals(null, compiler.defaultValue(schema.getField("nullDefault")));
         assertEquals("1", compiler.defaultValue(schema.getField("intDefault")));
         assertEquals("1", compiler.defaultValue(schema.getField("longDefault")));
     }
 
-    @Test public void testNullableTypesJavaUnbox() throws Exception {
+    @Test
+    public void testNullableTypesJavaUnbox() throws Exception {
         Avro4kCompiler compiler = createCompiler();
 
         // Nullable types should return boxed types instead of primitive types
         Schema nullableIntSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), Schema.create(Schema.Type.INT));
         Schema nullableIntSchema2 = Schema.createUnion(Schema.create(Schema.Type.INT), Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableIntSchema1), "Int?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableIntSchema2), "Int?");
+        assertEquals(compiler.kotlinUnbox(nullableIntSchema1), "Int?", "Should return boxed type");
+        assertEquals(compiler.kotlinUnbox(nullableIntSchema2), "Int?", "Should return boxed type");
 
         Schema nullableLongSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), Schema.create(Schema.Type.LONG));
         Schema nullableLongSchema2 = Schema.createUnion(Schema.create(Schema.Type.LONG), Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableLongSchema1), "Long?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableLongSchema2), "Long?");
+        assertEquals(compiler.kotlinUnbox(nullableLongSchema1), "Long?", "Should return boxed type");
+        assertEquals(compiler.kotlinUnbox(nullableLongSchema2), "Long?", "Should return boxed type");
 
         Schema nullableFloatSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), Schema.create(Schema.Type.FLOAT));
         Schema nullableFloatSchema2 = Schema.createUnion(Schema.create(Schema.Type.FLOAT), Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableFloatSchema1), "Float?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableFloatSchema2), "Float?");
+        assertEquals(compiler.kotlinUnbox(nullableFloatSchema1), "Float?", "Should return boxed type");
+        assertEquals(compiler.kotlinUnbox(nullableFloatSchema2), "Float?", "Should return boxed type");
 
         Schema nullableDoubleSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL),
-                                                          Schema.create(Schema.Type.DOUBLE));
+                Schema.create(Schema.Type.DOUBLE));
         Schema nullableDoubleSchema2 = Schema.createUnion(Schema.create(Schema.Type.DOUBLE),
-                                                          Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDoubleSchema1), "Double?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDoubleSchema2), "Double?");
+                Schema.create(Schema.Type.NULL));
+        assertEquals(compiler.kotlinUnbox(nullableDoubleSchema1), "Double?", "Should return boxed type");
+        assertEquals(compiler.kotlinUnbox(nullableDoubleSchema2), "Double?", "Should return boxed type");
 
         Schema nullableBooleanSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL),
-                                                           Schema.create(Schema.Type.BOOLEAN));
+                Schema.create(Schema.Type.BOOLEAN));
         Schema nullableBooleanSchema2 = Schema.createUnion(Schema.create(Schema.Type.BOOLEAN),
-                                                           Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableBooleanSchema1), "Boolean?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableBooleanSchema2), "Boolean?");
+                Schema.create(Schema.Type.NULL));
+        assertEquals(compiler.kotlinUnbox(nullableBooleanSchema1), "Boolean?", "Should return boxed type");
+        assertEquals(compiler.kotlinUnbox(nullableBooleanSchema2), "Boolean?", "Should return boxed type");
     }
 
-    @Test public void testUnionAndFixedFields(TestInfo testInfo) throws Exception {
+    @Test
+    public void testUnionAndFixedFields(TestInfo testInfo) throws Exception {
         Schema unionTypesWithMultipleFields = new Schema.Parser().parse(
                 new File("src/test/resources/union_and_fixed_fields.avsc"));
         assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
-                                         new Avro4kCompiler(unionTypesWithMultipleFields).compile());
+                new Avro4kCompiler(unionTypesWithMultipleFields).compile());
     }
 
-    @Test public void testLogicalTypesWithMultipleFieldsJsr310DateTime(TestInfo testInfo) throws Exception {
+    @Test
+    public void testLogicalTypesWithMultipleFieldsJsr310DateTime(TestInfo testInfo) throws Exception {
         Schema logicalTypesWithMultipleFields = new Schema.Parser().parse(
                 new File("src/test/resources/logical_types_with_multiple_fields.avsc"));
         assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
-                                         new Avro4kCompiler(logicalTypesWithMultipleFields).compile());
+                new Avro4kCompiler(logicalTypesWithMultipleFields).compile());
     }
 
-    @Test public void testPojoWithOptionalTurnedOffByDefault() throws IOException {
+    @Test
+    public void testPojoWithOptionalTurnedOffByDefault() throws IOException {
         Avro4kCompiler compiler = createCompiler();
         compiler.compileToDestination(this.src, OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
@@ -525,7 +540,8 @@ public class TestAvro4kCompiler {
         }
     }
 
-    @Test public void testAdditionalToolsAreInjectedIntoTemplate() throws Exception {
+    @Test
+    public void testAdditionalToolsAreInjectedIntoTemplate() throws Exception {
         Avro4kCompiler compiler = createCompiler();
         List<Object> customTools = new ArrayList<>();
         customTools.add("");

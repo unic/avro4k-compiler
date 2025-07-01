@@ -51,7 +51,7 @@
           </imports>
           <project implementation="org.apache.maven.plugin.testing.stubs.MavenProjectStub"/>
           <templateDirectory>
-            ${basedir}/src/test/resources/templates/
+            src/test/resources/templates/
           </templateDirectory>
           <velocityToolsClassesNames>
             <param>java.lang.String</param>

@@ -273,7 +273,7 @@ public class Avro4kCompiler {
     private void initializeSpecificData() {
         addLogicalTypeConversion(new DateLogicalTypeConversion());
         addLogicalTypeConversion(new TimestampMillisTypeConversion());
-        addLogicalTypeConversion(new TimestampMillisTypeConversion());
+        addLogicalTypeConversion(new TimeMillisTypeConversion());
         addLogicalTypeConversion(new DecimalLogicalTypeConversion());
     }
 
@@ -579,7 +579,7 @@ public class Avro4kCompiler {
         } else if (defaultValue instanceof Long) {
             return defaultValue + "L";
         } else if (defaultValue instanceof BigDecimal) {
-            return "java.math:BigDecimal(\"" + defaultValue.toString() + "\")";
+            return "java.math:BigDecimal(\"" + defaultValue + "\")";
         } else if (defaultValue instanceof Float) {
             return defaultValue + "f";
         } else if (defaultValue instanceof Number) {

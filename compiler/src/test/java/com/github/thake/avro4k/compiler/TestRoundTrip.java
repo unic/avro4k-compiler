@@ -35,7 +35,7 @@ public class TestRoundTrip {
         Object companion = field.get(cl);
         Method method = companion.getClass().getMethod("serializer");
         SerializationStrategy serializer = (SerializationStrategy<?>) method.invoke(companion);
-        Schema avroCompilerSchema = Avro.Companion.getDefault().schema(serializer);
+        Schema avroCompilerSchema = Avro.Default.schema(serializer);
         assertEquals(schema.toString(true), avroCompilerSchema.toString(true), "Generated avro4k schema does not match");
     }
 }

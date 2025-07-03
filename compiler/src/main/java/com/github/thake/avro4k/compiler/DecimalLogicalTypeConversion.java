@@ -11,7 +11,7 @@ public class DecimalLogicalTypeConversion extends SerializableLogicalTypeConvers
 
     @Override public String getSerializationAnnotation(Schema schema) {
         LogicalTypes.Decimal logicalType = (LogicalTypes.Decimal) schema.getLogicalType();
-        return "@ScalePrecision(" + logicalType.getScale() + "," + logicalType.getPrecision() + ") "
+        return "@AvroDecimal(scale=" + logicalType.getScale() + ",precision=" + logicalType.getPrecision() + ") "
                 + super.getSerializationAnnotation(schema);
     }
 

@@ -42,5 +42,5 @@ import kotlinx.serialization.*
 @AvroName("$schema.name")
 #end
 #if(!$schema.aliases.empty)
-@AvroAliases([#foreach($alias in $schema.aliases)"$alias"#if( $foreach.hasNext ),#end#end])
+@AvroAlias(#foreach($alias in $schema.aliases)"$alias"#if( $foreach.hasNext ),#end#end)
 #end

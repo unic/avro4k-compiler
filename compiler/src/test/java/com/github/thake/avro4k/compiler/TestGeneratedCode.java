@@ -17,8 +17,6 @@
 package com.github.thake.avro4k.compiler;
 
 import com.github.avrokotlin.avro4k.Avro;
-import com.github.avrokotlin.avro4k.io.AvroDecodeFormat;
-import com.github.avrokotlin.avro4k.io.AvroInputStream;
 import kotlinx.serialization.KSerializer;
 import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
@@ -34,8 +32,8 @@ import java.io.IOException;
 public class TestGeneratedCode {
 
     private final static SpecificData MODEL = new SpecificData();
-    private final static Schema V1S = Avro.Companion.getDefault().schema(FullRecordV1.Companion.serializer());
-    private final static Schema V2S = Avro.Companion.getDefault().schema(FullRecordV2.Companion.serializer());
+    private final static Schema V1S = Avro.Default.schema(FullRecordV1.Companion.serializer());
+    private final static Schema V2S = Avro.Default.schema(FullRecordV2.Companion.serializer());
 
     @BeforeEach
     public void setUp() {
@@ -47,8 +45,8 @@ public class TestGeneratedCode {
         FullRecordV1 src = new FullRecordV1(true, 87231, 731L, 54.2832F, 38.321, "Hi there", null);
         KSerializer<FullRecordV1> serializer = FullRecordV1.Companion.serializer();
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
-        byte[] output = Avro.Companion.getDefault().encodeToByteArray(serializer, src);
-        FullRecordV1 dst = Avro.Companion.getDefault().decodeFromByteArray(serializer, output);
+        byte[] output = Avro.Default.encodeToByteArray(serializer, src);
+        FullRecordV1 dst = Avro.Default.decodeFromByteArray(serializer, output);
         Assertions.assertEquals(src, dst);
     }
 
@@ -56,18 +54,11 @@ public class TestGeneratedCode {
     public void withSchemaMigration() throws IOException {
         FullRecordV2 src = new FullRecordV2(true, 731, 87231, 38L, 54.2832F, "Hi there", "Hello, world!");
         KSerializer<FullRecordV2> serializerV2 = FullRecordV2.Companion.serializer();
-        byte[] output = Avro.Companion.getDefault().encodeToByteArray(serializerV2, src);
+        byte[] output = Avro.Default.encodeToByteArray(serializerV2, src);
 
         KSerializer<FullRecordV1> serializerV1 = FullRecordV1.Companion.serializer();
 
-        AvroInputStream<FullRecordV1> inputStream = Avro.Companion.getDefault().openInputStream(serializerV1, f -> {
-            f.setDecodeFormat(new AvroDecodeFormat.Data(
-                    Avro.Companion.getDefault().schema(serializerV2),
-                    Avro.Companion.getDefault().schema(serializerV1)
-            ));
-            return null;
-        }).from(output);
-        FullRecordV1 dst = inputStream.next();
+        FullRecordV1 dst = Avro.Default.decodeFromByteArray(V2S, serializerV1, output);
 
         FullRecordV1 expected = new FullRecordV1(true, 87231, 731L, 54.2832F, 38.0, null, "Hello, world!");
         Assertions.assertEquals(expected, dst);

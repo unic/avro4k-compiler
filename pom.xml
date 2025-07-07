@@ -37,9 +37,9 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/thake/avro4k-compiler</url>
-        <connection>scm:git:git://github.com/thake/avro4k-compiler.git</connection>
-        <developerConnection>scm:git:git@github.com:thake/avro4k-compiler.git</developerConnection>
+        <url>https://github.com/unic/avro4k-compiler</url>
+        <connection>scm:git:https://github.com/unic/avro4k-compiler.git</connection>
+        <developerConnection>scm:git:https://github.com/unic/avro4k-compiler.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
     <developers>
@@ -47,6 +47,11 @@
             <id>thake</id>
             <name>Thorsten Hake</name>
             <email>mail@thorsten-hake.com</email>
+        </developer>
+        <developer>
+            <id>unic</id>
+            <name>Christian Meyer</name>
+            <email>christian.meyer@unic.com</email>
         </developer>
     </developers>
     <properties>
